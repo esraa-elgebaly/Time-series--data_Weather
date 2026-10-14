@@ -1,68 +1,15 @@
-# Time-series--data_Weather
-
 # Cairo Weather: Can We Forecast Tomorrow?
 
 Time-series EDA and forecasting setup for **Cairo, Egypt**, using 36 years of daily data (1990–2025) from the **NASA POWER API**.
 
 **Goal:** understand the data well enough to forecast two things for tomorrow:
 
-| Target | Task | Definition |
+| Target | Type | Definition |
 |---|---|---|
 | Mean temperature | Regression | `temp_mean` of the next day (°C) |
 | Rain | Classification | Next day has ≥ 1 mm of rain (yes / no) |
 
 ![Max temperature, every day since 1990](figures/04_daily_max_temperature_heatmap.png)
-
----
-
-## Pipeline
-
-```mermaid
-flowchart LR
-    A["NASA POWER API<br/>one request, 1990–2025"] --> B["Raw JSON + raw CSV<br/>saved as received"]
-    B --> C["Cleaning<br/>-999 and bad angles → NaN<br/>no rows dropped"]
-    C --> D["Clean CSV"]
-    D --> E["EDA<br/>patterns + hypotheses H1–H6"]
-    E --> F["Time-based split<br/>train / validation / test"]
-    F --> G["Baselines<br/>MAE, RMSE, R² · F1, CSI"]
-    G --> H["Models<br/>next step"]
-```
-
-**Rules followed throughout:**
-1. The raw data is never changed.
-2. No rows are dropped.
-3. Wrong values become `NaN`; only short gaps (≤ 3 days) are filled.
-4. Real extreme days are kept.
-5. Anything learned from the data (normals, thresholds) uses training years only.
-
----
-
-## Repository structure
-
-```
-cairo-weather-forecasting/
-├── cairo_weather_forecasting.ipynb   # full analysis, Parts 1–4 + Appendix
-├── figures/                          # key figures from the notebook
-│   ├── 01_daily_variables_1990_2025.png
-│   ├── 02_missing_wind_direction.png
-│   ├── 03_cairo_climate_overview.png
-│   ├── ...
-│   └── 17_train_validation_test_split.png
-├── presentation/                     # slides (PDF)
-├── requirements.txt
-├── .gitignore
-└── README.md
-```
-
-**Notebook outline**
-
-| Part | What it covers |
-|---|---|
-| 1 · Data collection | Call the API, save the raw JSON and a CSV |
-| 2 · Preparation | Dates, gaps, duplicates, missing and impossible values, clean CSV |
-| 3 · EDA | Descriptive stats, temporal patterns, decomposition and structure, relationships and anomalies, decisions |
-| 4 · Forecasting setup | Time split, metrics, baselines to beat |
-| Appendix | Dashboards, hypotheses H2 and H4–H6, storms |
 
 ---
 
@@ -72,55 +19,40 @@ cairo-weather-forecasting/
 |---|---|
 | **Source** | [NASA POWER](https://power.larc.nasa.gov/) daily point API (free, no API key) |
 | **Location** | Central Cairo, 30.04° N, 31.24° E |
-| **Period** | 1990-01-01 to 2025-12-31 · 13,149 days · no gaps, no duplicates |
-| **Variables** | `T2M`, `T2M_MAX`, `T2M_MIN`, `PRECTOTCORR`, `RH2M`, `WS2M`, `PS`, `WD2M` (mean / max / min temperature, rain, humidity, wind speed, pressure, wind direction) |
-| **Units** | Already metric (°C, mm/day, %, m/s, kPa, degrees) |
+| **Period** | 1990-01-01 to 2025-12-31 (13,149 days, no gaps, no duplicates) |
+| **Variables** | Mean, max and min temperature, rain, humidity, wind speed, wind direction, pressure |
 
-![Daily variables, 1990–2025](figures/01_daily_variables_1990_2025.png)
+**Rules followed:** the raw data is never changed, no rows are dropped, wrong values become `NaN`, only short gaps (≤ 3 days) are filled, real extreme days are kept, and anything learned from the data uses training years only.
 
 ---
 
-## EDA process
+## Key findings
 
-### Part 2 · Understanding and preparing the data
-| Step | What was checked | Result |
-|---|---|---|
-| 2.1 Understand the data | `head`, `tail`, `shape`, `dtypes`, `describe`, `nunique` | `wind_dir` has values down to −9000 |
-| 2.2 Date index, gaps, duplicates | Full daily date range, duplicated dates and rows | 13,149 days, no gaps, no duplicates |
-| 2.3 Every variable over time | One line plot per variable | Wind direction breaks in 2013; rain jumps in 2016 |
-| 2.4 Missing values | `-999` and negative angles → `NaN` | 4.5 % of the table, all in `wind_dir` (2013–2025) |
-| 2.5 Impossible values | Negative rain, min > max, humidity outside 0–100 %, negative wind | None found |
-| 2.6 Decision and save | Short gaps filled (≤ 3 days), wind direction left empty | Clean CSV saved |
+### 1. The data looked clean, but hid two problems
+- **Wind direction** is wrong from 2013 to 2025 (values down to −9000°): 36 % of the column. Left empty, not invented; valid for 1990–2012 only.
+- **Rain** jumps suddenly in 2016 (tested as H3 below).
 
 ![Missing wind direction per year](figures/02_missing_wind_direction.png)
 
-### Part 3 · Exploratory data analysis
-| Step | Method | Main finding |
-|---|---|---|
-| 3.1 Descriptive | Summary stats, skew, rain-day counts, histograms + KDE | Temperature has two peaks (winter / summer); only 2.9 % of days have ≥ 1 mm of rain |
-| 3.2 Temporal patterns | Full range, rolling means, yearly trend, boxplots by month, weekly check, rolling std | Season dominates; Cairo is warming (H1); rain jumps in 2016 (H3); spring is the most unstable season |
-| 3.3 Decomposition and structure | Additive vs multiplicative decomposition, ACF / PACF, ADF test | Season 19.1 °C, trend 2.8 °C, residual 2.2 °C; only the last ~5 days matter; stationary |
-| 3.4 Relationships and anomalies | Spearman correlation (raw and deseasonalized), rolling-window outliers (31 days, \|z\| > 3), suspicious values | Many raw links are just the shared season; 104 outliers that match real events, kept |
-| 3.5 From EDA to modeling | Decision table | See below |
+### 2. The season controls everything
+The mean temperature goes from about 12 °C in January to 30 °C in July–August, a seasonal swing of **19.1 °C**. Rain falls from October to April, and hotter days are drier.
 
 ![Cairo climate overview](figures/03_cairo_climate_overview.png)
 
----
-
-## Hypotheses
+### 3. Hypotheses
 
 | # | Question | Answer |
 |---|---|---|
 | **H1** | Is Cairo warming, and are nights warming faster than days? | **Yes.** Nights +0.41 °C and days +0.23 °C per 10 years |
 | **H2** | Are very hot days (> 40.1 °C) becoming more frequent? | **Partly.** 7 in 2013 vs 38 in 2024; 2023–2024 are the most extreme |
-| **H3** | Did heavy rain really increase after 2016, or did the data change? | **Most likely the data** (see below) |
-| **H4** | Are cold waves (< 5.7 °C) becoming rarer? | **Yes, slowly.** 20.4 nights per year (1990s) to 15.5 (2020s) |
+| **H3** | Did heavy rain really increase after 2016, or did the data change? | **Most likely the data.** See below |
+| **H4** | Are cold waves (< 5.7 °C) becoming rarer? | **Yes, slowly.** 20.4 per year (1990s) to 15.5 (2020s) |
 | **H5** | Do storms show warning signs in the days before? | **Partly.** Heat waves and cold snaps build up; storms don’t |
 | **H6** | Can Khamasin-like days be detected? | **Yes.** 125 days in 1990–2012, mostly December to April |
 
 ![H1: yearly mean of max and min temperature](figures/05_h1_yearly_max_min.png)
 
-### H3 · Did it really rain more after 2016?
+### 4. H3: did it really rain more after 2016?
 
 | | 1990–2015 | 2016–2025 |
 |---|---|---|
@@ -138,8 +70,8 @@ Three reasons this is most likely a change in the data, not the weather:
 ![Rain per year before vs after 2016](figures/09_h3_rain_before_after_2016.png)
 ![Storms vs rain over 36 years](figures/10_h3_storms_vs_rain.png)
 
-### Time-series structure
-- **Decomposition (additive):** season swing 19.1 °C, trend change 2.8 °C, daily residual 2.2 °C.
+### 5. Time-series structure
+- **Decomposition (additive):** season 19.1 °C, trend 2.8 °C, daily residual 2.2 °C.
 - **Stationarity (ADF):** raw, deseasonalized and differenced series are all stationary (p < 0.001).
 - **Autocorrelation:** 0.97 with yesterday (0.77 with the season removed); for daily changes only the last ~5 days matter. After a rain day, rain tomorrow is 39 % likely vs 5 % normally.
 
@@ -161,53 +93,26 @@ Three reasons this is most likely a change in the data, not the weather:
 | Wind direction stops in 2012 | Not used |
 | Outliers are real weather | Keep them |
 
----
+## Baselines to beat
 
-## Forecasting setup
-
-### Time-based split
-The split is by time, never random, so a model never sees the future. Validation chooses settings; test is used once, at the end.
+Split by time, never at random:
 
 | | Temperature | Rain |
 |---|---|---|
-| Train | 1990–2019 (10,957 days) | 2016–2020 (1,827 days, 89 rain-tomorrow days) |
-| Validation | 2020–2022 (1,096 days) | 2021–2022 (730 days, 44 rain-tomorrow days) |
-| Test | 2023–2025 (1,095 days) | 2023–2025 (1,095 days, 43 rain-tomorrow days) |
+| Train | 1990–2019 | 2016–2020 |
+| Validation | 2020–2022 | 2021–2022 |
+| Test | 2023–2025 | 2023–2025 |
 
-![Train, validation and test split](figures/17_train_validation_test_split.png)
-
-### Metrics
-| Task | Metric | Meaning |
+| Temperature baseline | MAE validation (°C) | MAE test (°C) |
 |---|---|---|
-| Temperature | **MAE** | Typical error in °C |
-| | **RMSE** | Like MAE, but punishes big misses more |
-| | **R²** | Share of the variation explained |
-| Rain | **Hits / Misses / False alarms** | Counts, shown first because rain days are few |
-| | **Precision / Recall / F1** | Quality of the “rain” predictions |
-| | **CSI** | Hits out of all days where rain was forecast or happened |
-| | Accuracy | Shown, but not used to choose: ~95 % of days are dry |
+| **Persistence (tomorrow = today)** | **1.07** | **1.04** |
+| Mean of last 7 days | 1.59 | 1.54 |
+| Climatology (normal for the date) | 1.84 | 1.79 |
+| Same day last year | 2.56 | 2.27 |
 
-### Temperature baselines (tomorrow’s mean temperature)
+For rain, “always no rain” is 94–96 % accurate but catches 0 rain days, so accuracy is not used. The best baseline is **persistence (rain today → rain tomorrow): F1 0.36 on validation, 0.47 on test.**
 
-| Baseline | Validation MAE | Validation RMSE | Validation R² | Test MAE | Test RMSE | Test R² |
-|---|---|---|---|---|---|---|
-| **Persistence (tomorrow = today)** | **1.07** | **1.49** | **0.96** | **1.04** | **1.44** | **0.96** |
-| Mean of last 7 days | 1.59 | 2.14 | 0.91 | 1.54 | 2.06 | 0.91 |
-| Climatology (normal for the date, train years) | 1.84 | 2.40 | 0.88 | 1.79 | 2.33 | 0.89 |
-| Same day last year | 2.56 | 3.35 | 0.77 | 2.27 | 2.93 | 0.82 |
-
-### Rain baselines (rain tomorrow, ≥ 1 mm)
-
-| Baseline | Split | Hits | Misses | False alarms | Accuracy | Precision | Recall | F1 | CSI |
-|---|---|---|---|---|---|---|---|---|---|
-| Always no rain | Validation | 0 | 44 | 0 | 0.94 | 0.00 | 0.00 | 0.00 | 0.00 |
-| Always no rain | Test | 0 | 43 | 0 | 0.96 | 0.00 | 0.00 | 0.00 | 0.00 |
-| **Persistence (rain today)** | Validation | | | | | | | **0.36** | |
-| **Persistence (rain today)** | Test | | | | | | | **0.47** | |
-| Seasonal guess (month’s chance) | Validation | | | | | | | | |
-| Seasonal guess (month’s chance) | Test | | | | | | | | |
-
-**Numbers to beat:** about **1.05 °C MAE** for temperature, and **persistence** for rain.
+**A model must beat about 1.05 °C MAE to be useful.**
 
 ---
 
@@ -225,11 +130,22 @@ The split is by time, never random, so a model never sees the future. Validation
 
 ---
 
+## Repository structure
+
+```
+cairo-weather-forecasting/
+├── Weather_Predication.ipynb   # full analysis: collection, cleaning, EDA, baselines
+├── figures/                    # key figures used in this README and the presentation
+├── presentation/               # slides (PDF)
+├── requirements.txt
+└── README.md
+```
+
 ## How to run
 
 ```bash
 pip install -r requirements.txt
-jupyter notebook cairo_weather_forecasting.ipynb
+jupyter notebook Weather_Predication.ipynb
 ```
 
 The notebook calls the NASA POWER API once and saves the raw JSON and CSV files next to it, so no data files are stored in this repository.
