@@ -312,4 +312,3 @@ jupyter notebook Weather_Predication.ipynb
 
 The raw API response (JSON) and the raw and clean CSV files are included. Running the notebook from the start calls the NASA POWER API again and recreates them.
 
-## Author
