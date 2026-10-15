@@ -11,7 +11,7 @@ Time-series EDA and forecasting setup for **Cairo, Egypt**, using 36 years of da
 
 📊 **Presentation:** [Cairo_Weather_Predication.pptx](Cairo_Weather_Predication.pptx)
 
-![Max temperature, every day since 1990](images/04_daily_max_temperature_heatmap.png)
+![Max temperature, every day since 1990](04_daily_max_temperature_heatmap.png)
 
 ---
 
@@ -44,9 +44,8 @@ flowchart LR
 ├── Cairo_Weather_Predication.pptx   # presentation slides
 ├── cairo_weather_raw.csv            # raw data from the API
 ├── cairo_weather_clean.csv          # cleaned data used in the analysis
-├── images/                          # 17 key figures from the notebook
+├── 01_ … 17_*.png                   # key figures from the notebook
 ├── requirements.txt
-├── LICENSE
 └── README.md
 ```
 
@@ -72,7 +71,7 @@ flowchart LR
 | **Variables** | `T2M`, `T2M_MAX`, `T2M_MIN`, `PRECTOTCORR`, `RH2M`, `WS2M`, `PS`, `WD2M` (mean / max / min temperature, rain, humidity, wind speed, pressure, wind direction) |
 | **Units** | Already metric (°C, mm/day, %, m/s, kPa, degrees) |
 
-![Daily variables, 1990–2025](images/01_daily_variables_1990_2025.png)
+![Daily variables, 1990–2025](01_daily_variables_1990_2025.png)
 
 ---
 
@@ -88,7 +87,7 @@ flowchart LR
 | 2.5 Impossible values | Negative rain, min > max, humidity outside 0–100 %, negative wind | None found |
 | 2.6 Decision and save | Short gaps filled (≤ 3 days), wind direction left empty | Clean CSV saved |
 
-![Missing wind direction per year](images/02_missing_wind_direction.png)
+![Missing wind direction per year](02_missing_wind_direction.png)
 
 ### Part 3 · Exploratory data analysis
 | Step | Method | Main finding |
@@ -99,7 +98,7 @@ flowchart LR
 | 3.4 Relationships and anomalies | Spearman correlation (raw and deseasonalized), rolling-window outliers (31 days, \|z\| > 3), suspicious values | Many raw links are just the shared season; 104 outliers that match real events, kept |
 | 3.5 From EDA to modeling | Decision table | See below |
 
-![Cairo climate overview](images/03_cairo_climate_overview.png)
+![Cairo climate overview](03_cairo_climate_overview.png)
 
 ---
 
@@ -114,11 +113,11 @@ flowchart LR
 | **H5** | Do storms show warning signs in the days before? | **Partly.** Heat waves and cold snaps build up; storms don’t |
 | **H6** | Can Khamasin-like days be detected? | **Yes.** 125 days in 1990–2012, mostly December to April |
 
-![H1: yearly mean of max and min temperature](images/05_h1_yearly_max_min.png)
+![H1: yearly mean of max and min temperature](05_h1_yearly_max_min.png)
 
 | H2 · Very hot days per year | H4 · Very cold nights per year |
 |---|---|
-| ![Very hot days](images/07_h2_very_hot_days.png) | ![Very cold nights](images/08_h4_very_cold_nights.png) |
+| ![Very hot days](07_h2_very_hot_days.png) | ![Very cold nights](08_h4_very_cold_nights.png) |
 
 ### H3 · Did it really rain more after 2016?
 
@@ -135,16 +134,16 @@ Three reasons this is most likely a change in the data, not the weather:
 
 **Decision:** all rain work uses 2016–2025 only.
 
-![Rain per year before vs after 2016](images/09_h3_rain_before_after_2016.png)
-![Storms vs rain over 36 years](images/10_h3_storms_vs_rain.png)
+![Rain per year before vs after 2016](09_h3_rain_before_after_2016.png)
+![Storms vs rain over 36 years](10_h3_storms_vs_rain.png)
 
 ### Time-series structure
 - **Decomposition (additive):** season swing 19.1 °C, trend change 2.8 °C, daily residual 2.2 °C.
 - **Stationarity (ADF):** raw, deseasonalized and differenced series are all stationary (p < 0.001).
 - **Autocorrelation:** 0.97 with yesterday (0.77 with the season removed); for daily changes only the last ~5 days matter. After a rain day, rain tomorrow is 39 % likely vs 5 % normally.
 
-![Decomposition](images/11_decomposition.png)
-![ACF and PACF](images/12_acf_pacf.png)
+![Decomposition](11_decomposition.png)
+![ACF and PACF](12_acf_pacf.png)
 
 ---
 
@@ -175,7 +174,7 @@ The split is by time, never random, so a model never sees the future. Validation
 | Validation | 2020–2022 (1,096 days) | 2021–2022 (730 days, 44 rain-tomorrow days) |
 | Test | 2023–2025 (1,095 days) | 2023–2025 (1,095 days, 43 rain-tomorrow days) |
 
-![Train, validation and test split](images/17_train_validation_test_split.png)
+![Train, validation and test split](17_train_validation_test_split.png)
 
 ### Metrics
 | Task | Metric | Meaning |
@@ -203,7 +202,7 @@ The split is by time, never random, so a model never sees the future. Validation
 |---|---|---|---|
 | Always no rain | 0.00 | 0.00 | 94 % / 96 % accurate, but 0 rain days caught |
 | **Persistence (rain today)** | **0.36** | **0.47** | Best: rain comes in groups of days |
-| Seasonal guess (month’s chance) | 0.08 | 0.04 | Random guess with each month’s rain chance |
+| Seasonal guess (month’s chance) | ≈ 0 | ≈ 0 | Random guess with each month’s rain chance |
 
 **Numbers to beat:** about **1.05 °C MAE** for temperature, and **persistence (F1 0.47 on test)** for rain.
 
@@ -232,6 +231,7 @@ jupyter notebook Weather_Predication.ipynb
 
 The raw and clean CSV files are included. Running the notebook from the start calls the NASA POWER API again and recreates them.
 
+## Author
 ## License
 [MIT](LICENSE)
 
