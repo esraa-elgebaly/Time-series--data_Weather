@@ -1,0 +1,80 @@
+{% extends "forecast/base.html" %}
+{% load weather_units %}
+
+{% block content %}
+  <div class="row g-4 mb-4">
+
+    <!-- the form -->
+    <div class="col-lg-5">
+      <section class="card-box h-100 mb-0">
+        <h2 class="box-title"><i class="bi bi-sliders" aria-hidden="true"></i> What if?</h2>
+        <p class="box-sub">Change the mean temperature of the last three days and see how tomorrow's average would change. Each value is checked against what Cairo has seen in that month since 1990. Temperatures here are in °C.</p>
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label class="form-label" for="{{ form.today.id_for_label }}">{{ form.today.label }}</label>
+            {{ form.today }}
+            {% for error in form.today.errors %}
+              <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <fieldset>
+            <legend class="form-label">Mean temperature (°C)</legend>
+            {% for field in form %}
+              {% if field.name != "today" %}
+                <div class="mb-3">
+                  <label class="small-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% for error in field.errors %}
+                    <div class="invalid-feedback d-block">{{ error }}</div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            {% endfor %}
+          </fieldset>
+
+          <button type="submit" class="btn btn-main w-100 mt-2">Forecast tomorrow</button>
+        </form>
+      </section>
+    </div>
+
+    <!-- the result -->
+    <div class="col-lg-7">
+      {% if result %}
+        <section class="card-box h-100 mb-0 tomorrow level-{{ result.level }}" id="result">
+          <h2 class="box-title"><i class="bi bi-sunrise" aria-hidden="true"></i> {{ result.day|date:"l j F Y" }}</h2>
+          <div class="tomorrow-temps tomorrow-one">
+            <div class="main">
+              <span>Average</span>
+              <strong>{{ result.forecast|temp:unit }}</strong>
+              <small>95&nbsp;% range: {{ result.lower|temp:unit }} to {{ result.upper|temp:unit }}</small>
+            </div>
+          </div>
+          <p class="mt-3 mb-0">
+            {% if result.difference >= 0 %}{{ result.difference|temp_change:unit }} warmer{% else %}{{ result.difference|temp_change:unit }} colder{% endif %}
+            than the normal for this date ({{ result.normal|temp:unit }}).
+          </p>
+          <p class="hint mb-0">For the max, min, rain, storm and heat, use the Forecast tab: they need more than the mean temperature.</p>
+        </section>
+      {% else %}
+        <section class="card-box h-100 mb-0 empty">
+          <i class="bi bi-thermometer-half" aria-hidden="true"></i>
+          <p class="mb-1">Tomorrow's average temperature will show here.</p>
+          <p class="hint mb-0">Open this tab from the Forecast page and the last three days are filled in for you.</p>
+        </section>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if result %}
+    <script>
+      // on a phone the result is under the form, so scroll down to it
+      if (window.innerWidth < 992) {
+        document.getElementById("result").scrollIntoView();
+      }
+    </script>
+  {% endif %}
+{% endblock %}

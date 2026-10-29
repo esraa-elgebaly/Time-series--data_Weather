@@ -1,0 +1,13 @@
+# the virtual environment is created again from requirements.txt
+venv/
+
+# Python cache files
+__pycache__/
+*.pyc
+
+# local database and collected static files
+db.sqlite3
+staticfiles/
+
+# editor settings
+.vscode/

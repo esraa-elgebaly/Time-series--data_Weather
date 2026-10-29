@@ -1,0 +1,327 @@
+{% extends "forecast/base.html" %}
+{% load static weather_units %}
+
+{% block content %}
+
+  <!-- place and where the weather days come from -->
+  <section class="card-box">
+    <h2 class="box-title"><i class="bi bi-geo-alt" aria-hidden="true"></i> Location and data</h2>
+    <div class="source-row">
+      <p class="place"><strong>Cairo, Egypt</strong><span>30.04° N, 31.24° E</span></p>
+      <a href="?mode=latest&unit={{ unit }}" class="source-option {% if mode == 'latest' %}active{% endif %}">
+        <i class="bi bi-broadcast" aria-hidden="true"></i> Latest NASA data
+      </a>
+      <form method="get" class="source-past {% if mode == 'past' %}active{% endif %}" novalidate>
+        <input type="hidden" name="mode" value="past">
+        <input type="hidden" name="unit" value="{{ unit }}">
+        <label for="{{ past_form.day.id_for_label }}"><i class="bi bi-calendar3" aria-hidden="true"></i> A past day</label>
+        {{ past_form.day }}
+        <button type="submit" class="btn btn-main">Show</button>
+      </form>
+    </div>
+    {% for error_text in past_form.day.errors %}
+      <div class="invalid-feedback d-block mt-2">{{ error_text }}</div>
+    {% endfor %}
+  </section>
+
+  {% if error %}
+    <div class="card-box notice">
+      <i class="bi bi-wifi-off" aria-hidden="true"></i>
+      <p class="mb-0">{{ error }}</p>
+    </div>
+  {% endif %}
+
+  {% if result %}
+    <div class="row g-4 mb-4">
+
+      <!-- the last known day, like "current weather" -->
+      <div class="col-lg-7">
+        <section class="card-box h-100 mb-0">
+          <h2 class="box-title"><i class="bi bi-thermometer-half" aria-hidden="true"></i> Weather information</h2>
+          <p class="box-sub">
+            {% if mode == "latest" %}
+              {{ latest.date|date:"l j F Y" }}, the newest day NASA has published ({{ days_behind }} day{{ days_behind|pluralize }} ago).
+            {% else %}
+              {{ latest.date|date:"l j F Y" }}, from the project's data.
+            {% endif %}
+          </p>
+
+          <div class="now">
+            <div class="now-icon cond-{{ latest.condition.level }}"><i class="bi {{ latest.condition.icon }}" aria-hidden="true"></i></div>
+            <div>
+              <p class="now-temp">{{ latest.temp_mean|temp:unit }}</p>
+              <p class="now-cond">{{ latest.condition.name }} · feels like {{ latest.feels_like|temp:unit }}</p>
+            </div>
+          </div>
+
+          <div class="details">
+            <p><i class="bi bi-arrow-up" aria-hidden="true"></i><span>Max</span>{{ latest.temp_max|temp:unit }}</p>
+            <p><i class="bi bi-arrow-down" aria-hidden="true"></i><span>Min</span>{{ latest.temp_min|temp:unit }}</p>
+            <p><i class="bi bi-droplet" aria-hidden="true"></i><span>Humidity</span>{{ latest.humidity|floatformat:0 }}%</p>
+            <p><i class="bi bi-wind" aria-hidden="true"></i><span>Wind</span>{{ latest.wind_kmh|floatformat:1 }} km/h</p>
+            <p><i class="bi bi-speedometer2" aria-hidden="true"></i><span>Pressure</span>{{ latest.pressure_hpa|floatformat:0 }} hPa</p>
+            <p><i class="bi bi-graph-{% if latest.pressure_change_hpa < 0 %}down{% else %}up{% endif %}-arrow" aria-hidden="true"></i><span>Pressure change</span>{% if latest.pressure_change_hpa > 0 %}+{% endif %}{{ latest.pressure_change_hpa|floatformat:1 }} hPa</p>
+            <p><i class="bi bi-cloud-rain" aria-hidden="true"></i><span>Rain</span>{{ latest.rain_mm|floatformat:1 }} mm</p>
+            <p><i class="bi bi-calendar-check" aria-hidden="true"></i><span>Normal (1990–2019)</span>{{ latest.normal_mean|temp:unit }}</p>
+          </div>
+        </section>
+      </div>
+
+      <!-- tomorrow -->
+      <div class="col-lg-5">
+        <section class="card-box h-100 mb-0 tomorrow level-{{ forecast.0.condition.level }}">
+          <h2 class="box-title"><i class="bi bi-sunrise" aria-hidden="true"></i> {% if mode == "latest" %}Tomorrow{% else %}The next day{% endif %}</h2>
+          <p class="box-sub">{{ result.target_day|date:"l j F Y" }}{% if result.steps > 1 %}, {{ result.steps }} days after NASA's newest day{% endif %}</p>
+
+          <div class="tomorrow-temps">
+            <div>
+              <span>Max</span>
+              <strong>{{ result.temperature.temp_max.forecast|temp:unit }}</strong>
+              <small>{{ result.temperature.temp_max.lower|temp:unit }} to {{ result.temperature.temp_max.upper|temp:unit }}</small>
+            </div>
+            <div class="main">
+              <span>Average</span>
+              <strong>{{ result.temperature.temp_mean.forecast|temp:unit }}</strong>
+              <small>{{ result.temperature.temp_mean.lower|temp:unit }} to {{ result.temperature.temp_mean.upper|temp:unit }}</small>
+            </div>
+            <div>
+              <span>Min</span>
+              <strong>{{ result.temperature.temp_min.forecast|temp:unit }}</strong>
+              <small>{{ result.temperature.temp_min.lower|temp:unit }} to {{ result.temperature.temp_min.upper|temp:unit }}</small>
+            </div>
+          </div>
+          <p class="hint">The small numbers are the 95&nbsp;% range{% if result.steps > 1 %}; they are wide because the forecast starts {{ result.steps }} days back{% endif %}.</p>
+
+          {% if warnings_current %}
+            <div class="chips">
+              <p class="chip chip-{{ result.rain.look.color }}"><i class="bi bi-cloud-rain" aria-hidden="true"></i> Rain {{ result.rain.chance|floatformat:0 }}%</p>
+              <p class="chip chip-{{ result.storm.look.color }}"><i class="bi bi-cloud-lightning-rain" aria-hidden="true"></i> Storm {{ result.storm.chance|floatformat:1 }}%</p>
+              <p class="chip chip-{% if result.very_hot.0.warning %}high{% else %}low{% endif %}"><i class="bi bi-thermometer-sun" aria-hidden="true"></i> Very hot {{ result.very_hot.0.percent }}%</p>
+            </div>
+          {% else %}
+            <p class="notice-small"><i class="bi bi-info-circle" aria-hidden="true"></i> Rain, storm and heat warnings need the weather of the day before tomorrow, and NASA's newest day is {{ result.today|date:"j F" }}. Pick a past day to see them, for example <a href="?mode=past&day=2020-03-11&unit={{ unit }}">11 March 2020</a>.</p>
+          {% endif %}
+
+          {% if happened %}
+            <div class="real">
+              <p class="real-title"><i class="bi bi-check2-circle" aria-hidden="true"></i> What really happened</p>
+              <p>Max {{ happened.temp_max|temp:unit }} · Average {{ happened.temp_mean|temp:unit }} · Min {{ happened.temp_min|temp:unit }} · Rain {{ happened.rain_mm|floatformat:1 }} mm{% if happened.storm %} <strong>(storm)</strong>{% endif %}</p>
+            </div>
+          {% endif %}
+        </section>
+      </div>
+    </div>
+
+    <!-- conditions: pick a day, see why the model gives that temperature, and the chart -->
+    <section class="card-box conditions">
+      <h2 class="box-title"><i class="bi bi-cloud-sun" aria-hidden="true"></i> Conditions</h2>
+
+      <!-- the days, like a calendar row -->
+      <div class="day-picker" role="tablist">
+        {% for day in forecast %}
+          <button type="button" class="pick level-{{ day.condition.level }} {% if forloop.first %}active{% endif %}" data-day="{{ forloop.counter0 }}" role="tab">
+            <span class="pick-name">{{ day.date|date:"D" }}</span>
+            <span class="pick-date">{{ day.date|date:"j" }}</span>
+            <i class="bi {{ day.condition.icon }}" aria-hidden="true"></i>
+            <span class="pick-temps">{{ day.temps.temp_max.forecast|floatformat:0 }}° / {{ day.temps.temp_min.forecast|floatformat:0 }}°</span>
+          </button>
+        {% endfor %}
+      </div>
+
+      <!-- one panel for each day -->
+      {% for day in forecast %}
+        <div class="day-panel" data-day="{{ forloop.counter0 }}" {% if not forloop.first %}hidden{% endif %}>
+          <div class="row g-4">
+            <div class="col-lg-5">
+              <p class="panel-date">{{ day.date|date:"l j F Y" }}</p>
+              <div class="panel-main level-{{ day.condition.level }}">
+                <i class="bi {{ day.condition.icon }}" aria-hidden="true"></i>
+                <div>
+                  <p class="panel-hl">H: {{ day.temps.temp_max.forecast|temp:unit }} &nbsp; L: {{ day.temps.temp_min.forecast|temp:unit }}</p>
+                  <p class="panel-cond">{{ day.condition.name }}</p>
+                </div>
+              </div>
+              <div class="panel-facts">
+                <p><span>Average</span>{{ day.temps.temp_mean.forecast|temp:unit }}</p>
+                <p><span>Feels like</span>{{ day.feels_like|temp:unit }}</p>
+                <p><span>Most likely</span>{{ day.temps.temp_mean.lower|temp:unit }} to {{ day.temps.temp_mean.upper|temp:unit }}</p>
+                <p><span>Chance of rain</span><strong>{{ day.rain_chance|floatformat:0 }}% <small>({{ day.rain_note }})</small></strong></p>
+                {% if day.real_max is not None %}
+                  <p class="real-row"><span>What really happened</span>H {{ day.real_max|temp:unit }} · L {{ day.real_min|temp:unit }}{% if day.real_rain >= 1 %} · {{ day.real_rain|floatformat:1 }} mm{% endif %}</p>
+                {% endif %}
+              </div>
+              <p class="hint mb-0">"Feels like" uses the usual humidity and wind for this date: humid air feels warmer, wind feels cooler.</p>
+            </div>
+
+            <!-- why the model gives this number -->
+            <div class="col-lg-7">
+              <p class="sub-title">Why the model says {{ day.why.forecast|temp:unit }} on average</p>
+              <div class="why">
+                <div class="why-row">
+                  <span class="why-label">Usual for {{ day.date|date:"j F" }} in {{ day.date|date:"Y" }}<small>the yearly season plus the warming trend</small></span>
+                  <strong>{{ day.why.expected|temp:unit }}</strong>
+                </div>
+                <div class="why-row">
+                  <span class="why-label">{% if day.why.memory >= 0 %}The last days were warmer than usual{% else %}The last days were colder than usual{% endif %}<small>the model's memory of the last 3 known days</small></span>
+                  <strong class="{% if day.why.memory >= 0 %}warmer{% else %}colder{% endif %}">{% if day.why.memory >= 0 %}+{% else %}−{% endif %}{{ day.why.memory|temp_change:unit }}</strong>
+                </div>
+                <div class="why-row why-total">
+                  <span class="why-label">Forecast</span>
+                  <strong>{{ day.why.forecast|temp:unit }}</strong>
+                </div>
+              </div>
+              <div class="why-days">
+                {% for known in day.why.last_days %}
+                  <p><span>{{ known.date|date:"D j M" }}</span>{{ known.value|temp:unit }} <em class="{% if known.difference >= 0 %}warmer{% else %}colder{% endif %}">{% if known.difference >= 0 %}+{% else %}−{% endif %}{{ known.difference|temp_change:unit }} vs usual</em></p>
+                {% endfor %}
+              </div>
+              <p class="hint mb-0">
+                The model keeps about {% widthratio day.why.keeps 1 100 %}% of the last known day's difference for the next day, and the difference fades a little more each day.
+                {% if day.steps > 1 %}This day is {{ day.steps }} days after the last known day, so the forecast is close to the usual value.{% endif %}
+              </p>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+
+      <!-- the chart -->
+      <div class="chart-head">
+        <label class="visually-hidden" for="metric">Show</label>
+        <select id="metric" class="form-select">
+          <option value="temp">Temperature</option>
+          <option value="humidity">Humidity</option>
+          <option value="wind">Wind</option>
+          <option value="pressure">Pressure</option>
+          <option value="rain">Rain</option>
+        </select>
+        <div class="toggle" id="temp-toggle">
+          <button type="button" class="active" data-view="actual">Actual</button>
+          <button type="button" data-view="feels">Feels like</button>
+        </div>
+      </div>
+      <div class="chart-box"><canvas id="conditions-chart" aria-label="Weather chart"></canvas></div>
+      <p class="hint mt-2 mb-0" id="chart-note"></p>
+      {{ chart|json_script:"chart-data" }}
+    </section>
+
+    <!-- storm watch: today's signs and what came before past storms -->
+    <section class="card-box">
+      <h2 class="box-title"><i class="bi bi-cloud-lightning-rain" aria-hidden="true"></i> Storm watch</h2>
+      <div class="row g-4">
+        <div class="col-lg-5">
+          <p class="sub-title">Signs on {{ result.today|date:"l j F" }}</p>
+          <ul class="signs">
+            {% for sign in signs %}
+              <li class="{% if sign.on %}on{% endif %}"><i class="bi {% if sign.on %}bi-check-circle-fill{% else %}bi-circle{% endif %}" aria-hidden="true"></i> {{ sign.name }}</li>
+            {% endfor %}
+          </ul>
+          <div class="storm-risk risk-{{ result.storm.look.color }}">
+            <p class="storm-risk-value">{{ result.storm.chance|floatformat:1 }}%</p>
+            <p class="storm-risk-text">
+              <strong>{{ result.storm.look.word }} chance of a storm on {{ result.next_day|date:"j F" }}{% if not warnings_current %}, a day that has already passed{% endif %}.</strong>
+              {% if result.storm_today %}
+                A storm is already here: {{ result.rain_mm|floatformat:1 }} mm of rain.
+              {% elif not result.in_season %}
+                No storm in 2016–2025 started between May and September.
+              {% else %}
+                In 2016–2025, {{ result.storm.count }} of {{ result.storm.days }} days with these signs were followed by a storm.
+              {% endif %}
+            </p>
+          </div>
+        </div>
+
+        <div class="col-lg-7">
+          <p class="sub-title">What came before Cairo's {{ storm_summary.total }} storms (2016–2025)</p>
+          <div class="stats">
+            <p><strong>{{ storm_summary.after_rain }}</strong> came the day after a rain day</p>
+            <p><strong>{{ storm_summary.warned }}</strong> after rain with falling pressure, the strongest sign</p>
+            <p><strong>{{ storm_summary.after_dry_day }}</strong> came after a dry day, with no sign in daily data</p>
+          </div>
+          <div class="table-responsive">
+            <table class="table pattern-table mb-0">
+              <thead>
+                <tr><th></th>{% for row in pre_storm %}<th>{{ row.label }}</th>{% endfor %}</tr>
+              </thead>
+              <tbody>
+                <tr><td>Days with rain</td>{% for row in pre_storm %}<td>{{ row.rain_days }} of {{ storm_summary.total }}</td>{% endfor %}</tr>
+                <tr><td>Humidity vs normal</td>{% for row in pre_storm %}<td>{% if row.humidity_vs_normal >= 0 %}+{% endif %}{{ row.humidity_vs_normal|floatformat:1 }}%</td>{% endfor %}</tr>
+                <tr><td>Pressure change</td>{% for row in pre_storm %}<td>{{ row.pressure_change|floatformat:1 }} hPa</td>{% endfor %}</tr>
+                <tr><td>Max temp vs normal</td>{% for row in pre_storm %}<td>{% if row.max_vs_normal < 0 %}−{% else %}+{% endif %}{{ row.max_vs_normal|temp_change:unit }}</td>{% endfor %}</tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="hint mt-2 mb-0">Averages over the 25 storms. Humidity rises and pressure falls in the days before a storm, and rain often starts the day before.</p>
+        </div>
+      </div>
+    </section>
+  {% endif %}
+
+  <!-- storm season and very hot days, from the whole data -->
+  <div class="row g-4 mb-4">
+    <div class="col-lg-5">
+      <section class="card-box h-100 mb-0">
+        <h2 class="box-title"><i class="bi bi-calendar-event" aria-hidden="true"></i> Storm season</h2>
+        <p class="box-sub">Storms by month, 2016–2025. None from May to September.</p>
+        <div class="bars bars-12">
+          {% for month in season %}
+            <div class="bar-col">
+              <span class="bar-count">{% if month.count %}{{ month.count }}{% endif %}</span>
+              <span class="bar bar-storm" style="height: {{ month.height }}%"></span>
+              <span class="bar-label">{{ month.month }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+    <div class="col-lg-7">
+      <section class="card-box h-100 mb-0">
+        <h2 class="box-title"><i class="bi bi-thermometer-sun" aria-hidden="true"></i> Very hot days (max above 40.1°C) each year</h2>
+        <p class="box-sub">{{ hot_first_decade|floatformat:1 }} a year in 1990–1999, {{ hot_last_decade|floatformat:1 }} a year in 2016–2025.</p>
+        <div class="bars bars-years">
+          {% for year in very_hot_by_year %}
+            <div class="bar-col" title="{{ year.year }}: {{ year.count }} days">
+              <span class="bar bar-hot" style="height: {{ year.height }}%"></span>
+              <span class="bar-label">{% if year.year|divisibleby:5 %}{{ year.year }}{% endif %}</span>
+            </div>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- every storm, with the signs the day before -->
+  <section class="card-box">
+    <h2 class="box-title"><i class="bi bi-list-ul" aria-hidden="true"></i> Storm history</h2>
+    <p class="box-sub">Click a storm to see what the app shows on the day before it.</p>
+    <div class="table-responsive storm-table-wrap">
+      <table class="table storm-table mb-0">
+        <thead>
+          <tr><th>Storm day</th><th>Rain</th><th>Rain the day before</th><th>Pressure falling the day before</th><th>Warning sign</th></tr>
+        </thead>
+        <tbody>
+          {% for storm in storms %}
+            <tr>
+              <td><a href="?mode=past&day={{ storm.day_before|date:'Y-m-d' }}&unit={{ unit }}">{{ storm.date|date:"D j M Y" }}</a></td>
+              <td>{{ storm.rain_mm|floatformat:1 }} mm</td>
+              <td>{% if storm.rain_before %}<i class="bi bi-check-lg yes" aria-label="yes"></i> {{ storm.rain_before_mm|floatformat:1 }} mm{% else %}<span class="no">dry</span>{% endif %}</td>
+              <td>{% if storm.pressure_falling_before %}<i class="bi bi-check-lg yes" aria-label="yes"></i>{% else %}<span class="no">no</span>{% endif %}</td>
+              <td>{% if storm.warned %}<span class="tag tag-high">Rain + falling pressure</span>{% elif storm.rain_before %}<span class="tag tag-medium">Rain only</span>{% else %}<span class="tag tag-low">None</span>{% endif %}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  {% if what_if %}
+    <p class="text-center mb-0">
+      <a class="btn btn-soft" href="{% url 'manual' %}?today={{ what_if.today }}&temp_2_days_ago={{ what_if.temp_2_days_ago }}&temp_yesterday={{ what_if.temp_yesterday }}&temp_today={{ what_if.temp_today }}&unit={{ unit }}"><i class="bi bi-sliders" aria-hidden="true"></i> What if these days were warmer or colder?</a>
+    </p>
+  {% endif %}
+
+  {% if result %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script src="{% static 'forecast/conditions.js' %}"></script>
+  {% endif %}
+
+{% endblock %}

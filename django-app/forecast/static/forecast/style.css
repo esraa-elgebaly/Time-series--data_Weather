@@ -1,0 +1,1041 @@
+/* one palette for the whole app; the four temperature colors are the same as in the notebook charts */
+:root {
+  --ink: #12304d;
+  --muted: #5a6b7d;
+  --line: #d5e1ec;
+  --surface: #ffffff;
+  --soft: #eef4fa;
+  --sky-top: #bfdcf2;
+  --sky-bottom: #eef5fb;
+  --cold: #2a78d6;
+  --mild: #1f9e89;
+  --warm: #eda100;
+  --hot: #e34948;
+  --rain: #3f6fb5;
+  --storm: #5b4bb7;
+  --level: var(--ink);
+}
+
+body {
+  min-height: 100vh;
+  background: linear-gradient(180deg, var(--sky-top) 0, var(--sky-bottom) 420px, var(--sky-bottom) 100%);
+  color: var(--ink);
+  font-family: "Rubik", system-ui, sans-serif;
+}
+
+a {
+  color: var(--cold);
+}
+
+/* header */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.app-title {
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.4rem;
+}
+
+.app-title .bi {
+  color: var(--warm);
+}
+
+.app-lead {
+  color: var(--muted);
+  font-size: 1.05rem;
+  max-width: 44rem;
+  margin: 0;
+}
+
+.unit-switch {
+  display: flex;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.25rem;
+  flex-shrink: 0;
+}
+
+.unit-switch a {
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  color: var(--muted);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.unit-switch a.active {
+  background: var(--ink);
+  color: #fff;
+}
+
+/* tabs */
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.tab {
+  padding: 0.55rem 1.1rem;
+  border-radius: 999px;
+  color: var(--ink);
+  text-decoration: none;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.tab.active {
+  background: var(--ink);
+  color: #fff;
+}
+
+/* cards */
+.card-box {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 1.4rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 6px 20px rgba(18, 48, 77, 0.06);
+}
+
+.box-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+
+.box-title .bi {
+  color: var(--cold);
+  margin-right: 0.3rem;
+}
+
+.box-sub {
+  color: var(--muted);
+  font-size: 0.92rem;
+  margin-bottom: 1rem;
+}
+
+.sub-title {
+  font-weight: 600;
+  margin-bottom: 0.6rem;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.notice {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  border-left: 6px solid var(--warm);
+}
+
+/* location and data source */
+.source-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 0.75rem;
+}
+
+.place {
+  margin: 0 1rem 0 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.place span {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.source-option,
+.source-past {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  padding: 0.45rem 0.8rem;
+  color: var(--ink);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.source-option.active,
+.source-past.active {
+  border-color: var(--ink);
+  background: var(--soft);
+}
+
+.source-past {
+  flex: 1 1 340px;
+  flex-wrap: wrap;
+}
+
+.source-past label {
+  margin: 0;
+}
+
+.source-past .form-control {
+  flex: 1 1 150px;
+  width: auto;
+}
+
+/* forms */
+.form-label {
+  font-weight: 500;
+  margin-bottom: 0.4rem;
+  font-size: 1rem;
+}
+
+.small-label {
+  display: block;
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.form-control {
+  border-color: var(--line);
+  border-radius: 10px;
+  padding: 0.55rem 0.8rem;
+}
+
+.form-control:focus {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px rgba(18, 48, 77, 0.15);
+}
+
+.btn-main {
+  background: var(--ink);
+  color: #fff;
+  border-radius: 10px;
+  padding: 0.55rem 1.2rem;
+  font-weight: 600;
+}
+
+.btn-main:hover,
+.btn-main:focus-visible {
+  background: #0b2136;
+  color: #fff;
+}
+
+.btn-soft {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.6rem 1.2rem;
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.btn-soft:hover {
+  background: var(--soft);
+}
+
+/* colors by temperature level or weather */
+.level-cold, .cond-cold { --level: var(--cold); }
+.level-mild, .cond-mild { --level: var(--mild); }
+.level-warm, .cond-warm { --level: var(--warm); }
+.level-hot, .cond-hot { --level: var(--hot); }
+.level-rain, .cond-rain { --level: var(--rain); }
+.level-storm, .cond-storm { --level: var(--storm); }
+
+/* weather information (the last known day) */
+.now {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.now-icon {
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  background: var(--level);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.2rem;
+  flex-shrink: 0;
+}
+
+.now-temp {
+  font-size: clamp(2.6rem, 8vw, 3.8rem);
+  font-weight: 700;
+  line-height: 1;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.now-temp span {
+  font-size: 0.45em;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.now-cond {
+  font-size: 1.15rem;
+  color: var(--muted);
+  margin: 0.3rem 0 0;
+}
+
+.details {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.4rem 1.5rem;
+  border-top: 1px solid var(--line);
+  padding-top: 1rem;
+}
+
+.details p {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.details .bi {
+  color: var(--cold);
+}
+
+.details span {
+  color: var(--muted);
+  font-weight: 400;
+  flex: 1;
+}
+
+/* tomorrow */
+.tomorrow {
+  border-top: 6px solid var(--level);
+}
+
+.tomorrow-temps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+.tomorrow-one {
+  grid-template-columns: 1fr;
+}
+
+.tomorrow-temps div {
+  background: var(--soft);
+  border-radius: 12px;
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.tomorrow-temps .main {
+  background: var(--level);
+  color: #fff;
+}
+
+.tomorrow-temps span {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.tomorrow-temps strong {
+  font-size: clamp(1.6rem, 5vw, 2.2rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.tomorrow-one strong {
+  font-size: 3.4rem;
+}
+
+.tomorrow-temps small {
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chip {
+  margin: 0;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #fff;
+  background: var(--chip);
+}
+
+.chip-low { --chip: var(--mild); }
+.chip-medium { --chip: var(--warm); }
+.chip-high { --chip: var(--hot); }
+
+.notice-small {
+  background: var(--soft);
+  border-radius: 12px;
+  padding: 0.75rem;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.real {
+  margin-top: 1rem;
+  border-top: 1px solid var(--line);
+  padding-top: 0.75rem;
+}
+
+.real p {
+  margin: 0;
+}
+
+.real-title {
+  font-weight: 600;
+}
+
+/* 5 days */
+.days {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.75rem;
+}
+
+.day {
+  text-align: center;
+  background: var(--soft);
+  border-radius: 14px;
+  padding: 0.9rem 0.5rem;
+  border-bottom: 4px solid var(--level);
+}
+
+.day p {
+  margin: 0;
+}
+
+.day-name {
+  font-weight: 600;
+}
+
+.day-date {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.day-icon {
+  display: block;
+  font-size: 2.4rem;
+  color: var(--level);
+  margin: 0.4rem 0;
+}
+
+.day-temps {
+  font-variant-numeric: tabular-nums;
+}
+
+.day-cond {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.day-rain {
+  font-size: 0.85rem;
+  margin-top: 0.3rem !important;
+}
+
+.day-rain span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.day-real {
+  margin-top: 0.4rem !important;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink);
+  border-top: 1px dashed var(--line);
+  padding-top: 0.4rem;
+}
+
+/* storm watch */
+.signs {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+}
+
+.signs li {
+  color: var(--muted);
+  margin-bottom: 0.4rem;
+}
+
+.signs li.on {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.signs .bi-check-circle-fill {
+  color: var(--storm);
+}
+
+.storm-risk {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  background: var(--soft);
+  border-left: 6px solid var(--risk);
+  border-radius: 12px;
+  padding: 0.9rem;
+}
+
+.risk-low { --risk: var(--mild); }
+.risk-medium { --risk: var(--warm); }
+.risk-high { --risk: var(--hot); }
+
+.storm-risk-value {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--risk);
+  margin: 0;
+}
+
+.storm-risk-text {
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.stats p {
+  margin: 0;
+  background: var(--soft);
+  border-radius: 12px;
+  padding: 0.7rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.stats strong {
+  display: block;
+  font-size: 1.7rem;
+  color: var(--storm);
+}
+
+.pattern-table th,
+.pattern-table td,
+.storm-table th,
+.storm-table td {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.pattern-table th,
+.storm-table th {
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+/* bar charts */
+.bars {
+  display: grid;
+  gap: 0.3rem;
+  height: 160px;
+  align-items: end;
+}
+
+.bars-12 {
+  grid-template-columns: repeat(12, 1fr);
+}
+
+.bars-years {
+  grid-template-columns: repeat(36, 1fr);
+  gap: 2px;
+}
+
+.bar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+}
+
+.bar {
+  width: 100%;
+  border-radius: 4px 4px 0 0;
+}
+
+.bar-storm {
+  background: var(--storm);
+  max-width: 34px;
+}
+
+.bar-hot {
+  background: var(--hot);
+}
+
+.bar-count {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.bar-label {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 0.3rem;
+  height: 1rem;
+  white-space: nowrap;
+}
+
+/* storm history */
+.storm-table-wrap {
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.storm-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+}
+
+.yes {
+  color: var(--storm);
+  font-weight: 700;
+}
+
+.no {
+  color: var(--muted);
+}
+
+.tag {
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #fff;
+}
+
+.tag-high { background: var(--hot); }
+.tag-medium { background: var(--warm); }
+.tag-low { background: #9aa8b6; }
+
+/* What if tab, before the first forecast */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 280px;
+  border-style: dashed;
+}
+
+.empty .bi {
+  font-size: 3rem;
+  color: var(--line);
+  margin-bottom: 0.75rem;
+}
+
+/* footer */
+.app-footer {
+  color: var(--muted);
+  font-size: 0.85rem;
+  border-top: 1px solid var(--line);
+  padding-top: 1rem;
+  margin-top: 2rem;
+}
+
+.app-footer p {
+  margin-bottom: 0.3rem;
+}
+
+/* tablets and phones */
+@media (max-width: 991px) {
+  .days {
+    grid-template-columns: repeat(5, minmax(120px, 1fr));
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 575px) {
+  .app-header {
+    flex-direction: column;
+  }
+
+  .details {
+    grid-template-columns: 1fr;
+  }
+
+  .stats {
+    grid-template-columns: 1fr;
+  }
+
+  .now-icon {
+    width: 80px;
+    height: 80px;
+    font-size: 2.4rem;
+  }
+
+  .bar-label {
+    font-size: 0.6rem;
+  }
+}
+/* ---- Conditions section (Forecast page) ---- */
+.day-picker {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.6rem;
+  margin: 0.75rem 0 1.25rem;
+}
+
+.pick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  background: var(--soft);
+  border: 2px solid transparent;
+  border-radius: 16px;
+  padding: 0.7rem 0.4rem;
+  color: var(--ink);
+  font-family: inherit;
+}
+
+.pick .bi {
+  font-size: 1.6rem;
+  color: var(--level);
+}
+
+.pick-name {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.pick-date {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.pick-temps {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.pick.active {
+  border-color: var(--ink);
+  background: var(--surface);
+  box-shadow: 0 4px 14px rgba(18, 48, 77, 0.12);
+}
+
+.panel-date {
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+
+.panel-main {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.panel-main > .bi {
+  font-size: 3rem;
+  color: var(--level);
+}
+
+.panel-hl {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 700;
+  margin: 0;
+}
+
+.panel-cond {
+  color: var(--muted);
+  margin: 0;
+}
+
+.panel-facts p {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--line);
+  font-weight: 600;
+}
+
+.panel-facts span {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.panel-facts small {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.panel-facts .real-row {
+  color: var(--ink);
+}
+
+.panel-facts + .hint {
+  margin-top: 0.6rem;
+}
+
+/* why the model gives this number */
+.why {
+  background: var(--soft);
+  border-radius: 14px;
+  padding: 0.4rem 1rem;
+  margin-bottom: 0.8rem;
+}
+
+.why-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.why-row strong {
+  font-size: 1.3rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.why-label small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.why-total {
+  border-bottom: none;
+}
+
+.why-total strong {
+  font-size: 1.6rem;
+}
+
+.warmer {
+  color: var(--hot);
+}
+
+.colder {
+  color: var(--cold);
+}
+
+.why-days {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.why-days p {
+  margin: 0;
+  background: var(--soft);
+  border-radius: 10px;
+  padding: 0.5rem 0.6rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.why-days span {
+  display: block;
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 0.8rem;
+}
+
+.why-days em {
+  display: block;
+  font-style: normal;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+/* the chart */
+.chart-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.5rem 0 0.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+}
+
+.chart-head .form-select {
+  width: auto;
+  border-radius: 999px;
+  border-color: var(--line);
+  font-weight: 500;
+}
+
+.toggle {
+  display: flex;
+  background: var(--soft);
+  border-radius: 999px;
+  padding: 0.25rem;
+}
+
+.toggle button {
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  padding: 0.35rem 1rem;
+  font-family: inherit;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.toggle button.active {
+  background: var(--ink);
+  color: #fff;
+}
+
+.chart-box {
+  position: relative;
+  height: 320px;
+}
+
+@media (max-width: 575px) {
+  .day-picker {
+    gap: 0.3rem;
+  }
+
+  .pick {
+    padding: 0.5rem 0.1rem;
+  }
+
+  .pick-temps {
+    font-size: 0.7rem;
+  }
+
+  .why-days {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-box {
+    height: 260px;
+  }
+}
+
+/* the next-day card: smaller numbers now that they carry °C or °F */
+.tomorrow-temps strong {
+  font-size: clamp(1.2rem, 3.4vw, 1.6rem);
+}
+
+.tomorrow-one strong {
+  font-size: 3.4rem;
+}
+/* ---- How accurate is the model? ---- */
+.accuracy {
+  border-left: 6px solid var(--mild);
+}
+
+.accuracy-lead {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  background: var(--soft);
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.accuracy-big {
+  font-size: clamp(2.2rem, 6vw, 3rem);
+  font-weight: 700;
+  color: var(--mild);
+  margin: 0;
+  white-space: nowrap;
+}
+
+.accuracy-table th {
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+.accuracy-table td,
+.accuracy-table th {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.better {
+  display: block;
+  color: var(--mild);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.accuracy-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.accuracy-cards div {
+  background: var(--soft);
+  border-radius: 14px;
+  padding: 0.9rem;
+}
+
+.accuracy-cards p {
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.accuracy-card-title {
+  font-weight: 600;
+  margin-bottom: 0.3rem !important;
+}
+
+.accuracy-card-title .bi {
+  color: var(--cold);
+}
+
+@media (max-width: 767px) {
+  .accuracy-lead {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .accuracy-cards {
+    grid-template-columns: 1fr;
+  }
+}
